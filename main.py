@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import csv
 import json
 import os
@@ -82,17 +83,40 @@ def combine_columns(
 
 
 def add_columns(file_data: pd.DataFrame, extra_info: Dict[str, Any]) -> pd.DataFrame:
-    OPS = (">", "<", ">=", "<=", "==", "+", "-", "*")
+    OPS = (">", "<", ">=", "<=", "==", "+", "-", "*", "/")
     if not extra_info.get("column"):
         typer.echo("Please provide a column for filtering")
         raise typer.Exit()
     if not extra_info.get("value"):
         typer.echo("Please provide a value for filtering")
         raise typer.Exit()
-    OPS = ("==", "<", "<=", ">", ">=", "!=")
+    if not extra_info.get("newcolumn"):
+        typer.echo("Please provide a newcolumn for combining")
+        raise typer.Exit()
+    OPS = ("==", "<", "<=", ">", ">=", "!=", "+", "-", "*", "/")
     if extra_info.get("operator") not in OPS:
         typer.echo("Unsupported Operator")
         raise typer.Exit()
+    if extra_info["operator"] == "!=":
+        file_data["newcolumn"] = file_data[extra_info["column"]] != extra_info["value"]
+    if extra_info["operator"] == "==":
+        file_data["newcolumn"] = file_data[extra_info["column"]] == extra_info["value"]
+    if extra_info["operator"] == "<=":
+        file_data["newcolumn"] = file_data[extra_info["column"]] <= extra_info["value"]
+    if extra_info["operator"] == "<":
+        file_data["newcolumn"] = file_data[extra_info["column"]] < extra_info["value"]
+    if extra_info["operator"] == ">=":
+        file_data["newcolumn"] = file_data[extra_info["column"]] >= extra_info["value"]
+    if extra_info["operator"] == ">":
+        file_data["newcolumn"] = file_data[extra_info["column"]] > extra_info["value"]
+    if extra_info["operator"] == "+":
+        file_data["newcolumn"] = file_data[extra_info["column"]] + extra_info["value"]
+    if extra_info["operator"] == "*":
+        file_data["newcolumn"] = file_data[extra_info["column"]] * extra_info["value"]
+    if extra_info["operator"] == "-":
+        file_data["newcolumn"] = file_data[extra_info["column"]] - extra_info["value"]
+    if extra_info["operator"] == "/":
+        file_data["newcolumn"] = file_data[extra_info["column"]] / extra_info["value"]
     return file_data
 
 
@@ -104,8 +128,8 @@ TYPE_METHOD_DICT = {
 }
 
 
-@app.callback()
-def main(input: str, output: str, config: str, force: bool = False):
+@app.command()
+def run(input: str, output: str, config: str, force: bool = False):
     if os.path.isfile(input):
         typer.echo(f"{input} file not found")
         raise typer.Exit()
@@ -155,12 +179,25 @@ def write_to_file(dict_to_write: Dict[str, Any], path_to_file: str) -> bool:
 @app.command()
 def types(option: Optional[str] = None):
     if not option:
-        typer.echo(f"Available types are {TYPE_METHOD_DICT.keys()}")
+        typer.echo(f"Available types are {set(TYPE_METHOD_DICT.keys())}")
         raise typer.Exit()
     check_supported_type(_type=option)
     if option == "date":
         typer.echo("Provide column name to format in 'column' key")
         typer.echo("Provide format in 'format' key")
+        typer.echo("%a - abbreviated weekday name")
+        typer.echo("%A - full weekday name")
+        typer.echo("%b - abbreviated month name")
+        typer.echo("%B - full month name")
+        typer.echo("%d - day of the month (01 to 31)")
+        typer.echo("%D - same as %m/%d/%y")
+        typer.echo("%m - month (01 to 12)")
+        typer.echo(
+            "%u - weekday as a number (1 to 7), Monday=1. Warning: In Sun Solaris Sunday=1"
+        )
+        typer.echo("%w - day of the week as a decimal, Sunday=0")
+        typer.echo("%y - year without a century (range 00 to 99)")
+        typer.echo("%Y - year including the century")
         raise typer.Exit()
     if option == "filter":
         typer.echo("Provide column name to operate on 'column' key")
