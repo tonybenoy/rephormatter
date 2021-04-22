@@ -75,7 +75,7 @@ def combine_columns(
         typer.echo("Please provide a newcolumn for combining")
         raise typer.Exit()
     file_data[extra_info.get("newcolumn")] = file_data.apply(
-        lambda x: "%s is %s"
+        lambda x: "%s %s"
         % (x[extra_info.get("column1")], x[extra_info.get("column2")]),
         axis=1,
     )
@@ -148,8 +148,9 @@ def run(input: str, output: str, config: str, force: bool = False):
     if "type" not in CONFIG.keys():
         typer.echo("Type not found in provided config file!")
     _type = CONFIG["type"]
+    extra_info = CONFIG
     check_supported_type(_type=_type)
-    resp = TYPE_METHOD_DICT[_type](file_data=data)
+    resp = TYPE_METHOD_DICT[_type](file_data=data, extra_info=extra_info)
     if not resp:
         typer.echo("Operation failed. Check input file or config.")
         raise typer.Exit()
