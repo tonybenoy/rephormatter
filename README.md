@@ -17,6 +17,4 @@ chmod +x main.py
 
 ### Running test cases
 
-```
-pytest .
-```
+`pytest .`
